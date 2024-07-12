@@ -1,0 +1,24 @@
+class Solution:
+    def kthFactor(self, n: int, k: int) -> int:
+        factors=[]
+        idx = -1
+
+        for i in range(1, int(math.sqrt(n))+1):
+            if n % i == 0:
+                factors.append(i)
+                idx += 1
+
+                if idx == k-1:
+                    return i
+        
+        length = len(factors)
+        l, r = length-1, length
+        if n == factors[l] * factors[l]:
+            l -= 1
+        while r < k-1:
+            l -=1
+            r += 1
+        if 0 <= l < length:
+            return int(n / factors[l])
+        return -1
+        
