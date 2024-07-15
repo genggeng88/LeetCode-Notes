@@ -156,3 +156,69 @@ select round(sum(datediff(a.event_date, fl.first_login_date)=1) / count(distinct
 from Activity a
 join first_login fl
 on a.player_id = fl.player_id;
+
+
+-- 1070. Product Sales Analysis III
+select Sales.product_id, first_year, quantity, price 
+from Sales 
+join (select product_id, min(year) as first_year 
+      from Sales 
+      group by product_id) as first_year_sales
+on Sales.product_id = first_year_sales.product_id and Sales.year = first_year_sales.first_year;
+
+
+-- 1141. User Activity for the Past 30 Days I
+select 
+    activity_date as day, 
+    count(distinct user_id) as active_users
+from activity
+where activity_date between '2019-06-28' and '2019-07-27'   
+group by activity_date;
+
+
+-- 2356. Number of Unique Subjects Taught by Each Teacher
+select teacher_id, count(distinct subject_id) as cnt 
+from teacher
+group by teacher_id;
+
+
+-- 596. Classes More Than 5 Students
+select class 
+from Courses
+group by class
+having count(class) >= 5;
+
+
+-- 1729. Find Followers Count
+select user_id, count(follower_id) as followers_count 
+from followers 
+group by user_id
+order by user_id asc;
+
+
+-- 619. Biggest Single Number
+with number_counts as 
+    (select n1.num, count(n2.num) as cnt 
+     from mynumbers n1 join mynumbers n2 on n1.num = n2.num 
+     group by n1.num)
+
+select coalesce(
+    (select num
+     from number_counts 
+     where cnt = 1 
+     order by num desc
+     limit 1), null) as num;
+
+
+-- 1045. Customers Who Bought All Products
+select customer_id from customer 
+group by customer_id 
+having count(distinct product_key) = (select count(product_key) from product);
+
+
+-- 1978. Employees Whose Manager Left the Company
+select e1.employee_id 
+from employees e1 
+left join employees e2 on e1.manager_id = e2.employee_id 
+where e1.salary < 30000 and e1.manager_id is not null and e2.employee_id is null
+order by e1.employee_id;
