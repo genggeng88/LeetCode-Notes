@@ -71,3 +71,88 @@ LEFT JOIN
     ) grouped
 ON s.student_id = grouped.student_id AND sub.subject_name = grouped.subject_name
 ORDER BY s.student_id, sub.subject_name;
+
+
+-- 1251. Average Selling Price
+SELECT p.product_id, 
+        ROUND(COALESCE(
+            SUM(p.price * u.units) / sum(u.units),0)
+            , 2) as average_price
+
+FROM Prices p
+LEFT JOIN UnitsSold u on p.product_id = u.product_id 
+AND u.purchase_date between p.start_date and p.end_date
+Group by p.product_id;
+
+
+-- 1075. Project Employees I
+SELECT project_id, 
+        ROUND(
+           COALESCE(SUM(experience_years) / COUNT(*) , 0) 
+            , 2) AS average_years 
+from Project 
+JOIN Employee ON Project.employee_id = Employee.employee_id
+group by project_id;
+
+
+-- 1633. Percentage of Users Attended a Contest
+SELECT contest_id, 
+        ROUND(COALESCE(count(user_id)*100 / (select count(*) FROM Users), 0), 2) as percentage 
+
+FROM Register 
+GROUP BY contest_id 
+ORDER BY percentage DESC, contest_id ASC;
+
+
+-- 1211. Queries Quality and Percentage
+SELECT query_name, 
+        ROUND(COALESCE(sum(rating/position) / count(*), 0), 2) AS quality,
+        ROUND(COALESCE(SUM(case when rating<3 then 1 else 0 end) * 100 / count(*),0),2) AS poor_query_percentage 
+
+FROM Queries 
+WHERE query_name is not null  
+group by query_name;
+
+
+-- 1193. Monthly Transactions I
+select 
+    date_format(trans_date, "%Y-%m") as month, 
+    country,  
+    count(*) as trans_count,  
+    sum(case when state = 'approved' then 1 else 0 end) as approved_count, 
+    sum(amount) as trans_total_amount, 
+    sum(case when state = 'approved' then amount else 0 end) as approved_total_amount
+from transactions
+group by date_format(trans_date, "%Y-%m"), country;
+
+
+-- 1174. Immediate Food Delivery II
+SELECT 
+    ROUND(SUM(CASE WHEN order_date = customer_pref_delivery_date THEN 1 ELSE 0 END) * 100 / COUNT(*), 2) AS immediate_percentage 
+FROM 
+    (SELECT 
+         customer_id, 
+         MIN(order_date) AS first_order_date 
+     FROM 
+         Delivery 
+     GROUP BY 
+         customer_id
+    ) first_orders
+JOIN Delivery D ON D.customer_id = first_orders.customer_id AND D.order_date = first_orders.first_order_date;
+
+
+DATE_ADD(fl.first_login_date, INTERVAL 1 DAY)  -- increment date
+DATE_SUB(fl.first_login_date, INTERVAL 1 DAY)  -- decrement date
+
+
+-- 550. Game Play Analysis IV
+with first_login as (
+    select player_id, min(event_date) as first_login_date
+    from Activity 
+    group by player_id
+)
+
+select round(sum(datediff(a.event_date, fl.first_login_date)=1) / count(distinct a.player_id), 2) as fraction
+from Activity a
+join first_login fl
+on a.player_id = fl.player_id;
