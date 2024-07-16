@@ -222,3 +222,119 @@ from employees e1
 left join employees e2 on e1.manager_id = e2.employee_id 
 where e1.salary < 30000 and e1.manager_id is not null and e2.employee_id is null
 order by e1.employee_id;
+
+
+-- 1731. The Number of Employees Which Report to Each Employee
+select e1.reports_to as employee_id, 
+       e2.name, 
+       count(e1.employee_id) as reports_count,
+       round(sum(e1.age) / count(e1.employee_id), 0) as average_age
+from Employees e1 
+join employees e2 
+on e1.reports_to = e2.employee_id
+group by e1.reports_to
+order by employee_id;
+
+
+-- 610. Triangle Judgement
+select x, y, z,
+       (case when x < y+z and y < x+z and z < x+y then 'Yes' else 'No' end) as triangle
+from triangle;
+
+
+-- 1789. Primary Department for Each Employee
+select employee_id, department_id 
+from employee 
+where primary_flag='Y' or 
+      employee_id in 
+      (select employee_id
+       from employee 
+       group by employee_id 
+       having count(department_id)=1);
+
+
+-- window functions
+-- LAG function is used to access data from a previous row in the same result set without the need for a self-join.
+-- LEAD function is used to access data from a subsequent row in the same result set without the need for a self-join.
+-- LEAD(column_name, offset, default_value) OVER (PARTITION BY partition_column ORDER BY order_column)
+
+-- column_name: The column from which to retrieve data.
+-- offset: The number of rows forward from the current row (default is 1 if omitted).
+-- default_value: A value to return if the specified offset goes out of the bounds of the partition (optional).
+-- PARTITION BY: Divides the result set into partitions to which the function is applied (optional).
+-- ORDER BY: Specifies the logical order in which the operation is performed.
+
+
+-- 180. Consecutive Numbers
+with consecutive as (
+    select num,
+       id, 
+       lead(num, 1) over(order by id) num1,
+       lead(num, 2) over(order by id) num2, 
+       lead(id, 1) over(order by id) id1,
+       lead(id, 2) over(order by id) id2
+    from logs)
+
+select distinct num as ConsecutiveNums 
+from consecutive 
+where num=num1 and num=num2 and id1=id+1 and id2=id+2;
+
+
+-- 1164. Product Price at a Given Date
+select distinct product_id, 10 as price 
+from products 
+group by product_id
+having min(change_date) > '2019-08-16'
+
+union
+
+select p.product_id, p.new_price as price
+from products p
+join (select product_id, max(change_date) as latest_date
+      from products 
+      where change_date <= '2019-08-16'
+      group by product_id) p2 
+on p.product_id = p2.product_id and p.change_date = p2.latest_date;
+
+
+-- 1204. Last Person to Fit in the Bus
+select q1.person_name 
+from queue q1 
+join queue q2 on q1.turn >= q2.turn 
+group by q1.turn 
+having sum(q2.weight) <= 1000
+order by sum(q2.weight) desc
+limit 1;
+
+
+-- 1907. Count Salary Categories
+with categories as (select account_id, 
+    (case when income < 20000 then 'Low Salary' else 
+         case when income > 50000 then 'High Salary' else 'Average Salary' end
+     end) category
+from accounts),
+
+category_counts as (
+    select category, count(account_id) as accounts_count
+    from categories 
+    group by category),
+
+all_categories AS (
+    SELECT 'Low Salary' AS category
+    UNION ALL
+    SELECT 'Average Salary'
+    UNION ALL
+    SELECT 'High Salary'
+)
+
+select ac.category, coalesce(cc.accounts_count, 0) as accounts_count
+from all_categories ac
+left join category_counts cc 
+on ac.category = cc.category;
+
+
+-- 1667. Fix Names in a Table
+select user_id, 
+        concat(upper(left(name, 1)), lower(substring(name, 2))) as name 
+from Users
+order by user_id;
