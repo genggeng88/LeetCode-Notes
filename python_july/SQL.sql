@@ -338,3 +338,89 @@ select user_id,
         concat(upper(left(name, 1)), lower(substring(name, 2))) as name 
 from Users
 order by user_id;
+
+
+-- 196. Delete Duplicate Emails
+with unique_person as (
+    select min(id) id
+    from Person 
+    group by email
+)
+
+delete from person where id not in (
+    select id from unique_person
+);
+
+
+-- 1527. Patients With a Condition
+select patient_id, patient_name, conditions 
+from Patients 
+where conditions LIKE '% DIAB1%' or
+      conditions LIKE 'DIAB1%';
+
+
+-- 176. Second Highest Salary
+select (
+    select distinct salary 
+    from Employee 
+    order by salary desc
+    limit 1 offset 1
+) as SecondHighestSalary;
+
+
+-- 1327. List the Products Ordered in a Period
+with order_units as (
+    select product_id, sum(unit) unit
+    from orders 
+    where order_date <= '2020-02-29' and order_date >= '2020-02-01'
+    group by product_id
+    having unit >= 100
+)
+select p.product_name, order_units.unit 
+from products p
+join order_units 
+on p.product_id = order_units.product_id;
+
+
+-- 1484. Group Sold Products By The Date
+select sell_date, 
+       count(distinct product) as num_sold, 
+       group_concat(distinct product order by product  separator ',') as products
+from activities 
+group by sell_date
+order by sell_date;
+
+
+-- 1517. Find Users With Valid E-Mails
+SELECT *
+FROM Users
+WHERE mail REGEXP '^[a-zA-Z][a-zA-Z0-9_.-]*@leetcode(\\?com)?\\.com$';
+
+
+-- 626. Exchange Seats
+select (
+    case 
+        when id % 2 = 1 and id = (select max(id) from seat) then id 
+        when id % 2 = 1 then id+1
+        else id-1 
+    end
+) as id, student 
+from seat
+order by id;
+
+
+-- 1341. Movie Rating
+(select name as results 
+     from Users join MovieRating on Users.user_id = MovieRating.user_id
+     group by MovieRating.user_id
+     order by count(movie_id) desc, name
+     limit 1)
+
+union all
+
+(select title as results 
+     from Movies join MovieRating on Movies.movie_id = MovieRating.movie_id
+     where created_at <= '2020-02-29' and created_at >= '2020-02-01'
+     group by MovieRating.movie_id
+     order by avg(rating) desc, title
+     limit 1) 
