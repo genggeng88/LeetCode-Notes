@@ -424,3 +424,81 @@ union all
      group by MovieRating.movie_id
      order by avg(rating) desc, title
      limit 1) 
+
+
+-- 1321. Restaurant Growth
+select 
+    distinct c.visited_on,
+    (select sum(amount)
+     from customer 
+     where visited_on between date_sub(c.visited_on, interval 6 day) and c.visited_on) as amount,
+    
+    round(
+        (select sum(amount)/7
+         from customer 
+         where visited_on between date_sub(c.visited_on, interval 6 day) and c.visited_on) 
+    , 2) as average_amount
+
+from customer c
+where visited_on >= (select date_add(min(visited_on), interval 6 day) from customer);
+
+
+-- 602. Friend Requests II: Who Has the Most Friends
+select  id, count(id) as num 
+from (
+    select requester_id as id from RequestAccepted 
+
+    union all
+
+    select accepter_id as id from RequestAccepted
+) as grouped
+
+group by id
+order by num desc
+limit 1;
+
+
+-- 585. Investments in 2016
+select round(sum(tiv_2016),2) as tiv_2016
+from insurance
+where tiv_2015 in 
+    (select tiv_2015 
+     from insurance 
+     group by tiv_2015
+     having count(*) > 1)
+
+    and
+
+    (lat, lon) in 
+    (select lat, lon from insurance
+     group by lat, lon 
+     having count(*) = 1); 
+
+
+-- 185. Department Top Three Salaries
+select d.name as Department, 
+       e1.name as Employee, 
+       e1.salary as Salary
+from employee e1 join department d 
+on e1.departmentId = d.id
+where 3 > (select count(distinct e2.salary)
+           from employee e2
+           where e2.salary > e1.salary
+           and e2.departmentId = e1.departmentId)
+
+
+-- Use DENSE_RANK() to rank these distinct salaries within each department in descending order.
+with unique_ids as (
+    select 
+        d.name as Department, 
+        e.name as Employee, 
+        e.salary as Salary, 
+        DENSE_RANK() OVER (PARTITION BY e.departmentId ORDER BY e.salary DESC) AS salary_rank
+    from employee e 
+    join department d 
+    on e.departmentId = d.id
+)
+
+select Department, Employee, Salary
+from unique_ids
+where salary_rank <= 3
