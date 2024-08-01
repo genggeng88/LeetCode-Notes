@@ -368,6 +368,28 @@ select (
 ) as SecondHighestSalary;
 
 
+SELECT DISTINCT salary
+FROM employees
+ORDER BY salary DESC
+LIMIT 1 OFFSET 1;
+
+
+WITH RankedSalaries AS (
+    SELECT salary,
+           ROW_NUMBER() OVER (ORDER BY salary DESC) AS rank
+    FROM employees
+)
+SELECT salary
+FROM RankedSalaries
+WHERE rank = 2;
+
+
+SELECT MAX(salary) AS second_highest_salary
+FROM employees
+WHERE salary < (SELECT MAX(salary) FROM employees);
+
+
+
 -- 1327. List the Products Ordered in a Period
 with order_units as (
     select product_id, sum(unit) unit
