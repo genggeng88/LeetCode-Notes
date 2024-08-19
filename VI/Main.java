@@ -1,60 +1,52 @@
-// Given an integer array nums and an integer k, return the k most frequent elements. You may return the answer in any order.
-//  
-// Example 1:
-// Input: nums = [1,1,1,2,2,3], k = 2
-// Output: [1,2]
-// Example 2:
-// Input: nums = [1], k = 1
-// Output: [1]
 import java.util.*;
+// import java.util.List;
 
 class Solution {
-    public List<Integer> frequent(int[] nums, int k) {
-        
-        HashMap<Integer, Integer> map = new HashMap<>();
-        for (int num : nums) {
-            if (map.containsKey(num)) {
-                map.put(num, map.get(num)+1);
-            }
-            else {
-                map.put(num, 1);
+    public long maximumValueSum(int[][] board) {
+        int m = board.length, n = board[0].length;
+        long maxSum = Long.MIN_VALUE;
+
+        List<int[]> rowCombo = combo(m);
+        List<int[]> colCombo = combo(n);
+
+        for (int[] rows : rowCombo) {
+            for (int[] cols : colCombo) {
+                long currSum = 0;
+                System.out.println("Testing Rows: " + rows[0] + ", " + rows[1] + ", " + rows[2]);
+                System.out.println("Testing Cols: " + cols[0] + ", " + cols[1] + ", " + cols[2]);
+                for (int i = 0; i < 3; i++) {
+                    currSum += board[rows[i]][cols[i]];
+                    System.out.println("Adding board[" + rows[i] + "][" + cols[i] + "] = " + board[rows[i]][cols[i]]);
+                }
+                System.out.println("Current Sum: " + currSum);
+                maxSum = Math.max(maxSum, currSum);
             }
         }
+        return maxSum;
+    }
 
-        List<Integer> result = new ArrayList<>();
-        
-        for (int i=0; i<k; i++) {
-            // System.out.println("map for each iteration: " + map.keySet());
-            int maxTimes = 0, maxValue = 0;
-            for (Integer ele: map.keySet()) {
-                if (maxTimes < map.get(ele)) {
-                    maxTimes = map.get(ele);
-                    maxValue = ele;
+    private List<int[]> combo(int length) {
+        List<int[]> tmp = new ArrayList<>();
+        for (int i = 0; i < length - 2; i++) {
+            for (int j = i + 1; j < length - 1; j++) {
+                for (int k = j + 1; k < length; k++) {
+                    tmp.add(new int[]{i, j, k});
                 }
             }
-            System.out.println("map: " + map.keySet());
-            result.add(maxValue);
-            map.remove(maxValue);
-            System.out.println("map after remove: " + map.keySet());
         }
-
-        return result;
+        return tmp;
     }
 }
 
-
 public class Main {
     public static void main(String[] args) {
-        Solution solution = new Solution();
-        
-        // Define test cases
-        int[] test1 = {1,1,1,2,2,3};
-        int k1 = 2;
-        int[] test2 = {1};
-        int k2 = 1;
-        
-        // Test canJump method
-        System.out.println("Test case 1: " + solution.frequent(test1, k1));
-        System.out.println("Test case 2: " + solution.frequent(test2, k2));
+        Solution sol = new Solution();
+        int[][] board = {
+            {-3, 1, 1, 1},
+            {-3, 1, -3, 1},
+            {-3, 2, 1, 1}
+        };
+    
+        System.out.println("Maximum Sum: " + sol.maximumValueSum(board)); // Expected output: 4
     }
 }
